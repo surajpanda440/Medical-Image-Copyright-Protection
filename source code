@@ -1,0 +1,64 @@
+import cv2
+from stegano import lsb
+import pydicom
+import os
+from PIL import Image, ImageDraw, ImageFont
+
+#function for embedding invisible watermark
+def embed_watermark(image_path, watermark_text, output_path):
+    image = cv2.imread(image_path)
+    
+    # Save the image to a temporary file
+    temp_image_path = r"C:/Users/Saugat Nayak/Downloads/temp_image.png"  # Use an appropriate image format (e.g., PNG)
+    cv2.imwrite(temp_image_path, image)
+    
+    watermark = lsb.hide(temp_image_path, watermark_text)
+    watermark.save(output_path)
+    print("Watermark embedded successfully.")
+    
+    # Remove the temporary image file
+    os.remove(temp_image_path)
+
+#function for embedding metadata
+def embed_metadata(dicom_path, metadata, output_path):
+    ds = pydicom.dcmread(dicom_path)
+    ds.PatientName = metadata["PatientName"]
+    ds.PatientID = metadata["PatientID"]
+    ds.save_as(output_path)
+    print("Metadata embedded successfully.")
+
+
+if __name__ == "__main__":
+    image_path = r"C:/Users/Saugat Nayak/Downloads/medical_image.jpg"
+    dicom_path = r"C:/Users/Saugat Nayak/Downloads/medical_image.dcm"
+
+    metadata = {
+        "PatientName": "John Doe",
+        "PatientID": "12345",
+    }
+
+    watermark_text = "ML_Project"
+
+    watermarked_image_path = r"C:/Users/Saugat Nayak/Downloads/watermarked_medical_image.jpg"
+    watermarked_dicom_path = r"C:/Users/Saugat Nayak/Downloads/watermarked_medical_image.dcm"
+
+    embed_watermark(image_path, watermark_text, watermarked_image_path)
+    embed_metadata(dicom_path, metadata, watermarked_dicom_path)
+    
+
+#Visivble watermark
+image = Image.open(r"C:/Users/Saugat Nayak/Downloads/medical_image.jpg")
+draw = ImageDraw.Draw(image)
+watermark_text = "Copyrighted Image"
+font = ImageFont.truetype("arial.ttf", 36)
+position = (10, 10)
+watermark_color = (255, 0, 0)  
+overlay = Image.new("RGBA", image.size, (255, 255, 255, 0))
+draw = ImageDraw.Draw(overlay)
+draw.text(position, watermark_text, font=font, fill=watermark_color)
+watermarked_image = Image.alpha_composite(image.convert("RGBA"), overlay)
+watermarked_image = watermarked_image.convert("RGB")
+watermarked_image.save(r"C:/Users/Saugat Nayak/Downloads/watermarked_medical_image1.jpg")
+image.close()
+
+print("Copyright protection processes completed.")
